@@ -70,7 +70,7 @@ req.body.approvals.forEach(function(approval){
         from: 'completeanalytics@gmail.com',
         to: 'completeanalytics@gmail.com,'+approval.email+'',
         subject: 'New user approval Required',
-        text: 'New user '+req.body.approval.name+'has just signed up. Please approve.'
+        text: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.'
       };
     User.findOneAndUpdate({'email':approval.email}, {approval:approval.approval,batchName:approval.batchName}, {upsert:false}, function(err, doc){
         if (err) errorMessage.push('Updation failure happened for '+ approval.email)
@@ -179,7 +179,7 @@ for(var R = 0; R <excel_as_json.length; R++) {
             from: 'completeanalytics@gmail.com',
             to: email,
             subject: 'Login created -Complete Analytics',
-            text: 'Please change your password and login to test portal of Complete Analytics. Password:'+pass.toString()
+            text: '<h3>Dear Candidate<h3><br/><p>CompleteAnalytics has created your login. Please change your password and login to test portal of Complete Analytics. Password:'+pass.toString()+'</p>'
           };
             insertobj.push({
                 _id: new  mongoose.Types.ObjectId(),
