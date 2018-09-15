@@ -243,16 +243,16 @@ exports.mcqGetRank = function(req, res) {
                             // console.log(p);
                             p.tests.forEach(function(ts){
                                 var counter1 =0 ;
-                                if(ts.testName==req.body.testName && ts.marks>0){
+                                if(ts.testName==req.body.testName && ts.marks>-1){
                                     // console.log("in pop"+returnObj);
                                     // console.log(ts);
                                     // console.log(returnObj.filter(o=>o.name==p.firstName+" "+p.lastName));
                                     if(returnObj.filter(o=>o.name==p.firstName+" "+p.lastName).length>0)
                                     {
                                         console.log("In update test"+ts);
-                                        returnObj.filter(o=>o.name==p.firstName+" "+p.lastName).map(p1=>p1.marks=ts.marks);
+                                        returnObj.filter(o=>o.name==p.firstName+" "+p.lastName).map(p1=>{if(p1.marks<ts.marks)p1.marks=ts.marks});
                                         counter1++;
-                                        if(counter==usr.length && counter1==p.length){
+                                        if(counter==usr.length && counter1==p.tests.length){
                                             console.log("returnObj"+returObj);
                                             return res.status(200).json({
                                                 userDet: returnObj,
@@ -267,7 +267,7 @@ exports.mcqGetRank = function(req, res) {
                                 counter1++;
                                 console.log(counter);
                                 console.log(counter1);
-                                if(counter==usr.length && counter1==p.length){
+                                if(counter==usr.length && counter1==p.tests.length){
                                     console.log("returnObj"+returnObj);
                                     return res.status(200).json({
                                         userDet: returnObj,

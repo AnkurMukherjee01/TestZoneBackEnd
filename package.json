@@ -16,12 +16,11 @@
     "bcrypt": "^2.0.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
-    "excel-parser": "^0.2.2",
     "express": "^4.16.3",
     "jsonwebtoken": "^8.3.0",
     "mongoose": "^5.2.7",
     "nodemailer": "^4.6.7",
-    "unqlite": "^0.3.5",
+    "querystring": "^0.2.0",
     "xlsx": "^0.13.3"
   }
 }

@@ -23,6 +23,7 @@ const user = mongoose.Schema({
    approval:{type:String,required:false},
    passChange:{type:Boolean,required:false},
    batchName:{type:String,required:false},
+   lastLogin:{type:Date,required:false},
    tests:[testDetails]
 });
 

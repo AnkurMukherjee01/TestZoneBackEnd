@@ -1,10 +1,9 @@
-// const mongoose = require('mongoose');
-// const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const User = require('../models/user.model');
 const Test = require('../models/test.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const querystring = require('querystring'); 
 const approval = require('../models/responseModel/approval')
 var XLSX = require('xlsx')
 var nodemailer = require('nodemailer');
@@ -58,19 +57,21 @@ exports.UpdateApproval = function(req, res) {
 var errorMessage=[];
 var transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-      user: 'completeanalytics@gmail.com',
-      pass: 'CARS@201106'
-    }
+    // auth: {
+    //   user: 'completeanalytics@gmail.com',
+    //   pass: 'CARS@201106'
+    // }
+    auth:auth
   });
   
-  
+  var counter =0;
 req.body.approvals.forEach(function(approval){
+    counter++;
     var mailOptions = {
-        from: 'completeanalytics@gmail.com',
-        to: 'completeanalytics@gmail.com,'+approval.email+'',
+        from: senderEmail,
+        to: ''+senderEmail+','+approval.email+'',
         subject: 'New user approval Required',
-        text: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.'
+        html: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.</p>'
       };
     User.findOneAndUpdate({'email':approval.email}, {approval:approval.approval,batchName:approval.batchName}, {upsert:false}, function(err, doc){
         if (err) errorMessage.push('Updation failure happened for '+ approval.email)
@@ -88,23 +89,57 @@ req.body.approvals.forEach(function(approval){
                   console.log('Email sent: ' + info.response);
                 }
               });
+              if(counter.length=req.body.approvals.length){
+                if(errorMessage.length>0){
+                    return res.send(500,errorMessage);
+                }
+                return res.send({success:"succesfully updated"});
+            }
         }
     });
-    if(errorMessage.length>0){
-        return res.send(500,errorMessage);
-    }
-    return res.send("succesfully saved");
+    
+    
 })
-.catch(error => {
-    console.log(error);
-    res.status(500).json({
-        error: error
-    });
-  });
+
+
 }     
  });
 }
+exports.mailApproval = function(req,res){
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        // auth: {
+        //   user: 'completeanalytics@gmail.com',
+        //   pass: 'CARS@201106'
+        // }
+        auth:auth
+      });
 
+      var mailOptions = {
+        from: senderEmail,
+        to: ''+senderEmail+','+approval.email+'',
+        subject: 'New user approval Required',
+        html: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.</p>'
+      };
+    User.findOneAndUpdate({'email':req.query.email}, {approval:req.query.approval,batchName:'MISC BATCH'}, {upsert:false}, function(err, doc){
+        if (err) errorMessage.push('Updation failure happened for '+ approval.email)
+        else{
+            transporter.sendMail(mailOptions, function(error, info){transporter.sendMail(mailOptions, function(error, info){
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+        }
+    });
+}
 exports.CreateBulkUser = function(req, res) {
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
     
@@ -116,10 +151,11 @@ exports.CreateBulkUser = function(req, res) {
       else{
         var transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: {
-              user: 'completeanalytics@gmail.com',
-              pass: 'CARS@201106'
-            }
+            // auth: {
+            //   user: 'completeanalytics@gmail.com',
+            //   pass: 'CARS@201106'
+            // }
+            auth:auth
           });
           
           
@@ -176,10 +212,10 @@ for(var R = 0; R <excel_as_json.length; R++) {
                 }   
                 else{ 
                     var mailOptions = {
-            from: 'completeanalytics@gmail.com',
+            from: senderEmail,
             to: email,
             subject: 'Login created -Complete Analytics',
-            text: '<h3>Dear Candidate<h3><br/><p>CompleteAnalytics has created your login. Please change your password and login to test portal of Complete Analytics. Password:'+pass.toString()+'</p>'
+            html: '<h3>Dear Candidate<h3><br/><p>CompleteAnalytics has created your login. Please change your password and login to test portal of Complete Analytics. Password:'+pass.toString()+'</p>'
           };
             insertobj.push({
                 _id: new  mongoose.Types.ObjectId(),

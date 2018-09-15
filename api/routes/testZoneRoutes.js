@@ -49,6 +49,7 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/getuserdetails',approval.getUserDetails);
 
+  app.post('/api/forgetPassword',testZone.forgetPassword);
     app.use(function(req, res) {
       res.status(404).send({url: req.originalUrl + ' not found'})
     });
