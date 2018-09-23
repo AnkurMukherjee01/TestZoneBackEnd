@@ -23,6 +23,8 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/bulklogin',approval.CreateBulkUser);
 
+  app.get('/api/approvemail',approval.mailApproval);
+
   app.post('/api/changePassword',testZone.changePassword);
 
   app.post('/api/createTest',approval.CreateTest);
@@ -49,7 +51,9 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/getuserdetails',approval.getUserDetails);
 
-  app.post('/api/forgetPassword',testZone.forgetPassword);
+  app.post('/api/forgetpassword',testZone.forgetPassword);
+
+  app.post('/api/createbatch',approval.createBatch);
     app.use(function(req, res) {
       res.status(404).send({url: req.originalUrl + ' not found'})
     });

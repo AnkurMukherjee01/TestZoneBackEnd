@@ -7,7 +7,7 @@ var nodemailer = require('nodemailer');
 
 exports.loginCheck = function(req, res) {
   console.log(req.body);
-  User.findOne({email: req.body.email,approval: {$nin: ['N','D']}})
+  User.findOne({email: req.body.email.toLowerCase(),approval: {$nin: ['N','D']}})
   .exec()
   .then(function(user) {
     if(user!=null){
@@ -26,7 +26,7 @@ exports.loginCheck = function(req, res) {
            {
              expiresIn: '4h'
            });
-           User.findOneAndUpdate({'email':req.body.email},{$set:{'lastLogin':new Date()}}).exec();
+           User.findOneAndUpdate({'email':req.body.email.toLowerCase()},{$set:{'lastLogin':new Date()}}).exec();
            return res.status(200).json({
              success: 'Welcome to the Test Zone',
              token: JWTToken,
@@ -58,7 +58,7 @@ exports.loginCheck = function(req, res) {
 
   exports.signUp=function(req, res) {
     console.log(req.body);
-    User.findOne({email: req.body.email})
+    User.findOne({email: req.body.email.toLowerCase()})
     .exec()
     .then(function(user) {
       console.log(user);
@@ -82,7 +82,7 @@ exports.loginCheck = function(req, res) {
         
         var mailOptions = {
           from: senderEmail,
-          to: ''+senderEmail+','+req.body.email+'',
+          to: ''+senderEmail+','+req.body.email.toLowerCase()+'',
           // from: 'mukherjeenkur@gmail.com',
           // to: 'mukherjeenkur@gmail.com,'+req.body.email+'',
           subject: 'New user approval Required',
@@ -95,10 +95,10 @@ exports.loginCheck = function(req, res) {
           // to: 'mukherjeenkur@gmail.com,'+req.body.email+'',
           subject: 'New user approval Required',
           html: '<h1>Dear Admin</h1><br/><div>New user <b>'+req.body.firstName+ " "+req.body.lastName
-          +'</b>has just signed up. For MCQ approve.<a href="https://completeanalytics.in/api/approvemail/?email:' + req.body.email
-           + '&approval=M">APPROVE MCQ</a><br/>For Analytical Approve <a href="https://completeanalytics.in/api/approvemail/?email:' + req.body.email + 
-           '&approval=A">APPROVE Analytical</a><br/>For Both <a href="https://completeanalytics.in/api/approvemail/?email:' + req.body.email + 
-           '&approval=MA">BOTH</a></div><br/>For Decline <a href="https://completeanalytics.in/api/approvemail/?email:' + req.body.email + 
+          +'</b>has just signed up. For MCQ approve.<a href="http://localhost:3000/api/approvemail/?email=' + req.body.email
+           + '&approval=M">APPROVE MCQ</a><br/>For Analytical Approve <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 
+           '&approval=A">APPROVE Analytical</a><br/>For Both <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 
+           '&approval=MA">BOTH</a></div><br/>For Decline <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 
            '&approval=D">Decline</a>'
         };
         
@@ -112,7 +112,7 @@ exports.loginCheck = function(req, res) {
        
           const user = new User({
              _id: new  mongoose.Types.ObjectId(),
-             email: req.body.email,
+             email: req.body.email.toLowerCase(),
              password: hash  ,
               firstName: req.body.firstName,
               lastName: req.body.lastName,
@@ -150,7 +150,7 @@ exports.loginCheck = function(req, res) {
 
   exports.changePassword=function(req, res) {
     console.log(req.body);
-    User.findOne({email: req.body.email,approval: {$nin: ['N','D']}})
+    User.findOne({email: req.body.email.toLowerCase(),approval: {$nin: ['N','D']}})
     .exec()
     .then(function(user) {
       if(user!=null){
@@ -171,7 +171,7 @@ exports.loginCheck = function(req, res) {
           }
           else {
             console.log(hash);
-            User.findOneAndUpdate({'email':req.body.email}, 
+            User.findOneAndUpdate({'email':req.body.email.toLowerCase()}, 
             {
               password: hash  ,
               passChange:false
@@ -201,7 +201,7 @@ exports.loginCheck = function(req, res) {
 
 exports.forgetPassword=function(req, res) {
   console.log(req.body);
-  User.findOne({email: req.body.email,approval: {$nin: ['N','D']}})
+  User.findOne({email: req.body.email.toLowerCase(),approval: {$nin: ['N','D']}})
   .exec()
   .then(function(user) {
     if(user!=null){
@@ -216,7 +216,7 @@ exports.forgetPassword=function(req, res) {
       });
       var mailOptions = {
         from: senderEmail,
-        to: req.body.email,
+        to: req.body.email.toLowerCase(),
         subject: 'Login created -Complete Analytics',
         html: '<h3>Dear Candidate<h3><br/><p>New temporary Password is:'+pass.toString()+'.<br/> Please change password by clicking on Change Password Tab.</p>'
       };
@@ -229,7 +229,7 @@ exports.forgetPassword=function(req, res) {
         }
         else {
           console.log(hash);
-          User.findOneAndUpdate({'email':req.body.email}, 
+          User.findOneAndUpdate({'email':req.body.email.toLowerCase()}, 
           {
             password: hash  ,
             passChange:true

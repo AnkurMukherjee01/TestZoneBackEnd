@@ -12,16 +12,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 const cors = require('cors')
-
-// global.auth={
-//   user: 'completeanalytics@gmail.com',
-//   pass: 'CARS@201106'
-// }
 global.senderEmail='completeanalytics@gmail.com'
 global.auth={
   user: senderEmail,
-  pass: 'CARS@4268'
+  pass: 'CARS@201106'
 }
+// global.senderEmail='mukherjeenkur@gmail.com'
+// global.auth={
+//   user: senderEmail,
+//   pass: 'jibontori'
+// }
 
 var corsOptions = {
  origin: '*',

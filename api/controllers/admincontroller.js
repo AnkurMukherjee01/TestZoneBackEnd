@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/user.model');
 const Test = require('../models/test.model');
+const Batch = require('../models/batch.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const querystring = require('querystring'); 
@@ -137,6 +138,9 @@ exports.mailApproval = function(req,res){
                   console.log('Email sent: ' + info.response);
                 }
               });
+              res.status(200).json({
+                success: 'Success'
+             });
         }
     });
 }
@@ -276,7 +280,7 @@ exports.CreateTest = function(req, res) {
         .then(function(tst) {
             console.log(tst);
             if(tst!=null && tst.length>0){
-                Test.findOneAndUpdate({testName: req.body.testName.toUpperCase()}, { testDuration: req.body.testDuration}, {upsert:false}, function(err, doc){
+                Test.findOneAndUpdate({testName: req.body.testName.toUpperCase()}, { testDuration: req.body.testDuration, noOfQstn:req.body.noOfQstn}, {upsert:false}, function(err, doc){
                     if (err) errorMessage.push('Updation failure happened for '+ req.body.testName);
                     var workbook = XLSX.read(req.body.testFile, {type:'base64'});
                     var first_sheet_name = workbook.SheetNames[0];
@@ -295,6 +299,7 @@ exports.CreateTest = function(req, res) {
                            options: []  ,
                          });
                          var j=0;
+                         console.log(testArray)
                          for (var key in excel_as_json[i-1]) {
                             j++;
                              if(key.startsWith('option'))
@@ -339,6 +344,7 @@ exports.CreateTest = function(req, res) {
             testName: req.body.testName.toUpperCase() ,
             testDuration: req.body.testDuration,
              testType: req.body.testType,
+             noOfQstn:req.body.noOfQstn,
              tests:[]
          });
 
@@ -500,33 +506,48 @@ exports.getBatchName = function(req,res){
       if (err) {console.log(err);return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' })}
       else{
           var batchName=[];
-            User.find({},function(err,usr){
-                console.log(usr);
-                if (err) return res.send(500,{message:'failed to remove '+ req.body.test});
+            // User.find({},function(err,usr){
+            //     console.log(usr);
+            //     if (err) return res.send(500,{message:'failed to remove '+ req.body.test});
+            //     else{
+            //         var i=0;
+            //     usr.forEach(function(u){
+            //         i++;
+            //        console.log(u);
+            //        if(u.batchName!=undefined && u.batchName!=""){
+            //            batchName.push(u.batchName);
+            //         if(i==usr.length){
+            //             console.log(batchName);
+            //             res.status(200).json({
+            //                 batch: batchName
+            //              });
+            //         }
+            //         else{
+            //             if(i==usr.length){
+            //                 console.log(batchName);
+            //                 res.status(200).json({
+            //                     batch: batchName
+            //                  });
+            //             }
+            //         }
+            //         }
+            //     })
+
+
+            // }
+            // })
+            Batch.find({},function(err,btch){
+                if(err){
+                    res.status(500).json({
+                        error:"Error happened while fetching data"
+                    });
+                }
                 else{
-                    var i=0;
-                usr.forEach(function(u){
-                    i++;
-                   console.log(u);
-                   if(u.batchName!=undefined && u.batchName!=""){
-                       batchName.push(u.batchName);
-                    if(i==usr.length){
-                        console.log(batchName);
-                        res.status(200).json({
-                            batch: batchName
-                         });
-                    }
-                    else{
-                        if(i==usr.length){
-                            console.log(batchName);
-                            res.status(200).json({
-                                batch: batchName
-                             });
-                        }
-                    }
-                    }
-                })
-            }
+                    console.log(btch.map(o=>o.batchName))
+                    res.status(200).json({
+                        batch: btch.map(o=>o.batchName)
+                    });
+                }
             })
             // .exec().then(function(user){
             //     console.log(batchName);
@@ -556,4 +577,50 @@ exports.getUserDetails = function(req,res){
             })
       }
     })
+}
+
+exports.createBatch = function(req, res){
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+    
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+    
+    jwt.verify(token, 'secret', function(err) {
+        Batch.find({batchName:req.body.batchName}
+        ).exec().then(function(btch){
+            if(btch!=undefined && btch.length>0){
+                res.status(409).json({
+                    error:"Batch already exist."
+                 });
+            }
+            else{
+                const batch = new Batch({
+                    _id: new  mongoose.Types.ObjectId(),
+                    batchName: req.body.batchName,
+                 });
+                 batch.save().then(function(result){
+                    res.status(200).json({
+                        success:"Batch Created successfully"
+                     });
+                 })
+            }
+            
+            });
+        });
+}
+
+exports.DeleteBatch = function(req, res){
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+    
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+    
+    jwt.verify(token, 'secret', function(err) {
+        Batch.find({batchName:req.body.batchName}
+        ).remove(function(err, doc){
+            if(btch!=undefined && btch.length>0){
+                if (err) {console.log(err);return res.send(500,{message:'failed to remove '+ req.body.batchName});}
+                else return res.send({"success":"Batch succesfully deleted"});
+            }         
+            
+            });
+        });
 }

@@ -12,6 +12,7 @@ const test = mongoose.Schema({
    testName: {type: String, required: true},
    testType: {type: String, required: true},
    testDuration: {type: String, required:false},
+   noOfQstn:{type:Number,required:false},
    tests:[testDetails]
 });
 
