@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const answer = mongoose.Schema({
 question:{type:String,required:true},
-answer :  {type:String,required:true}
+answer :  {type:String,required:true},
+qstnId:{type:String,required:true}
 });
 
 const testDetails = mongoose.Schema({
@@ -9,6 +10,7 @@ const testDetails = mongoose.Schema({
     date: {type: Date, required: false},
    testName: {type: String, required: true},
    duration:{type:String,required:false},
+   timeStarted:{type:Date,required:false},
     answers:[answer],
    marks: {type: String, required:false},
 });

@@ -280,6 +280,7 @@ exports.CreateTest = function(req, res) {
         .then(function(tst) {
             console.log(tst);
             if(tst!=null && tst.length>0){
+              
                 Test.findOneAndUpdate({testName: req.body.testName.toUpperCase()}, { testDuration: req.body.testDuration, noOfQstn:req.body.noOfQstn}, {upsert:false}, function(err, doc){
                     if (err) errorMessage.push('Updation failure happened for '+ req.body.testName);
                     var workbook = XLSX.read(req.body.testFile, {type:'base64'});
@@ -595,7 +596,7 @@ exports.createBatch = function(req, res){
             else{
                 const batch = new Batch({
                     _id: new  mongoose.Types.ObjectId(),
-                    batchName: req.body.batchName,
+                    batchName: req.body.batchName.toLowerCase(),
                  });
                  batch.save().then(function(result){
                     res.status(200).json({

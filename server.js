@@ -17,11 +17,7 @@ global.auth={
   user: senderEmail,
   pass: 'CARS@201106'
 }
-// global.senderEmail='mukherjeenkur@gmail.com'
-// global.auth={
-//   user: senderEmail,
-//   pass: 'jibontori'
-// }
+
 
 var corsOptions = {
  origin: '*',
