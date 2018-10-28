@@ -95,7 +95,7 @@ exports.loginCheck = function(req, res) {
           // to: 'mukherjeenkur@gmail.com,'+req.body.email+'',
           subject: 'New user approval Required',
           html: '<h1>Dear Admin</h1><br/><div>New user <b>'+req.body.firstName+ " "+req.body.lastName
-          +'</b>has just signed up. For MCQ approve.<a href="http://localhost:3000/api/approvemail/?email=' + req.body.email
+          +'</b>has just signed up. For MCQ approve.<a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email
            + '&approval=M">APPROVE MCQ</a><br/>For Analytical Approve <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 
            '&approval=A">APPROVE Analytical</a><br/>For Both <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 
            '&approval=MA">BOTH</a></div><br/>For Decline <a href="https://completeanalytics.in/api/approvemail/?email=' + req.body.email + 

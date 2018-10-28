@@ -4,7 +4,7 @@ const testDetails = mongoose.Schema({
     answer: {type: String, required: false},
    options: [String],
    comments:{type:String,required:false},
-   image: {type: Buffer, required:false},
+   image: {type: String, required:false},
 });
 
 const test = mongoose.Schema({

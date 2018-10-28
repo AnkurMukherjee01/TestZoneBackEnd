@@ -8,8 +8,10 @@ var express = require('express'),
 //     next();
 // })
 app.listen(port);
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 const cors = require('cors')
 global.senderEmail='completeanalytics@gmail.com'

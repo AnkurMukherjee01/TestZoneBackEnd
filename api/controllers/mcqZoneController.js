@@ -10,12 +10,11 @@ const Test = require('../models/test.model');
 exports.mcqDet = function (req, res) {
 
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-    console.log(token);
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err, decoded) {
 
-        if (err) { console.log(err); return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        if (err) {  return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
             User.findOne({ email: decoded.email })
                 .exec()
@@ -24,12 +23,7 @@ exports.mcqDet = function (req, res) {
                         testDet: user.tests,
                     });
                 })
-                .catch(error => {
-                    console.log(error);
-                    res.status(500).json({
-                        error: error
-                    });
-                });
+
         }
     });
 
@@ -38,52 +32,43 @@ exports.mcqDet = function (req, res) {
 exports.mcqFetchQuestion = function (req, res) {
 
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-    console.log(token);
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err, decoded) {
 
-        if (err) { console.log(err); return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) };
-        console.log(req.body.assignedDate)
-        console.log(req.body.testName);
+        if (err) { return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) };
         User.find({ "email": decoded.email, "tests": { $elemMatch: { "assigneddate": req.body.assignedDate, "testName": req.body.testName } } }).exec().
             then(usr => {
-                console.log(usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName }))
-
                 if (usr != null && usr.length > 0 && (usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].marks == undefined ||
                     usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].marks < 0)) {
                     Test.find({ testName: req.body.testName.trim() })
                         .exec()
                         .then(function (tst) {
-                            console.log((new Date()).getTime())
-                            console.log(tst[0].testDuration * 60 * 1000)
-                            console.log((new Date()).getTime() - 
-                            new Date(usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted).getTime())
-                            if (usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted == undefined ||
+                                if (usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted == undefined ||
                                 (new Date()).getTime() - new Date(usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted).getTime() <
                                 tst[0].testDuration * 60 * 1000) {
-                                    if(usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted == undefined){
-                                        User.findOneAndUpdate({ "email": decoded.email, "tests": { $elemMatch: { "testName": req.body.testName, "assigneddate": req.body.assignedDate } } },
+                                if (usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].timeStarted == undefined) {
+                                    User.findOneAndUpdate({ "email": decoded.email, "tests": { $elemMatch: { "testName": req.body.testName, "assigneddate": req.body.assignedDate } } },
                                         { $set: { "tests.$.timeStarted": new Date() } }).exec();
-                                    }
-                                    else{
+                                }
+                                else {
 
-                                    }
-                                   
+                                }
+
                                 var promise1 = new Promise((resolve, reject) => {
                                     if (tst[0].noOfQstn != undefined) {
                                         tst[0].tests = getRandom(tst[0].tests, tst[0].noOfQstn)
-                                       var exist= usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].answers
-                                    console.log(exist)
-                                       for (var x=0;x<exist.length;x++){
-                                          
-                                        if(tst[0].tests.filter(p=>p._id == exist[x].qstnId).length==0){
-                                            User.findOneAndUpdate({ "email": decoded.email, "tests": { $elemMatch: { "testName": req.body.testName, "assigneddate": req.body.assignedDate } } },
-                                            {
-                                                $pull:{"tests.$.answers":{"qstnId":exist[x].qstnId}}
-                                            }).exec()
+                                        var exist = usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })[0].answers
+                                       
+                                        for (var x = 0; x < exist.length; x++) {
+
+                                            if (tst[0].tests.filter(p => p._id == exist[x].qstnId).length == 0) {
+                                                User.findOneAndUpdate({ "email": decoded.email, "tests": { $elemMatch: { "testName": req.body.testName, "assigneddate": req.body.assignedDate } } },
+                                                    {
+                                                        $pull: { "tests.$.answers": { "qstnId": exist[x].qstnId } }
+                                                    }).exec()
+                                            }
                                         }
-                                    } 
                                         if (tst[0].tests.length == tst[0].noOfQstn) {
                                             resolve(tst)
                                         }
@@ -94,14 +79,14 @@ exports.mcqFetchQuestion = function (req, res) {
                                 });
                                 promise1.then(() => {
                                     return res.status(200).json({
-                                        tst:tst,
-                                        existingDet:usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })
+                                        tst: tst,
+                                        existingDet: usr[0].tests.filter(o => { return new Date(o.assigneddate).getTime() == new Date(req.body.assignedDate).getTime() && o.testName == req.body.testName })
                                     })
                                 })
                             }
                             else {
 
-                                if(testSave(req.body.testName, decoded.email, req.body.assignedDate)){
+                                if (testSave(req.body.testName, decoded.email, req.body.assignedDate)) {
                                     return res.status(200).json({
                                         success: 'Test has been Updated.',
                                         marks: marks,
@@ -132,63 +117,47 @@ exports.mcqFetchQuestion = function (req, res) {
 exports.mcqSaveAnswer = function (req, res) {
 
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-    console.log(token);
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err, decoded) {
 
-        if (err) { console.log(err); return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) };
-
-        console.log(req.body.testName);
+        if (err) { return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) };
         User.find({ "email": decoded.email, "tests.testName": req.body.testName, "tests.assigneddate": req.body.assignedDate })
             .exec()
             .then(function (tst) {
-                console.log("testDetail" + tst);
-
-                if (testObjreturnvalue(tst, req.body.assignedDate, req.body.testName, req.body.answers.question,req.body.answers.qstnId) == 1) {
-                    console.log("tst" + tst);
+                    if (testObjreturnvalue(tst, req.body.assignedDate, req.body.testName, req.body.answers.question, req.body.answers.qstnId) == 1) {
                     // User.update({"email": decoded.email,"tests.assigneddate":req.body.assignedDate, "tests.testName":req.body.testName},{$set:{"tests.$.duration":req.body.duration},
                     // $push:{"tests.$.answers":{"question":req.body.answers.question,"answer":req.body.answers.answer}}})
                     User.findOneAndUpdate({ "email": decoded.email, "tests": { $elemMatch: { "assigneddate": req.body.assignedDate, "testName": req.body.testName } } }, {
                         $set: {
                             "tests.$.duration":
                                 req.body.duration
-                        }, $push: { "tests.$.answers": { "question": req.body.answers.question, "answer": req.body.answers.answer,"qstnId":req.body.answers.qstnId } }
+                        }, $push: { "tests.$.answers": { "question": req.body.answers.question, "answer": req.body.answers.answer, "qstnId": req.body.answers.qstnId } }
                     })
                         .exec(function (err, doc) {
                             return res.status(200).json({
                                 success: 'Test has been Updated.'
                             });
                         })
-                        .catch(error => {
-                            console.log(error);
-                            res.status(500).json({
-                                error: error
-                            });
-                        });
                 }
-                else if (testObjreturnvalue(tst, req.body.assignedDate, req.body.testName, req.body.answers.question,req.body.answers.qstnId) == 2) {
+                else if (testObjreturnvalue(tst, req.body.assignedDate, req.body.testName, req.body.answers.question, req.body.answers.qstnId) == 2) {
 
                     User.find({
                         "email": decoded.email, "tests": {
                             $elemMatch: {
-                                "assigneddate": req.body.assignedDate, "testName": req.body.testName, "answers": { $elemMatch: { "question": req.body.answers.question,"qstnId":req.body.answers.qstnId } }
+                                "assigneddate": req.body.assignedDate, "testName": req.body.testName, "answers": { $elemMatch: { "question": req.body.answers.question, "qstnId": req.body.answers.qstnId } }
                             }
                         }
                     }).exec(function (err, doc) {
-                        console.log("DOC" + doc);
                         doc[0].tests.forEach(function (o) {
-                            console.log("in tests");
                             if (o.testName == req.body.testName) {
                                 var index = 0;
-
                                 o.answers.forEach(function (o1) {
-                                    console.log("inanswer" + index);
                                     if (o1.question == req.body.answers.question) {
                                         User.findOneAndUpdate({
                                             "email": decoded.email, "tests": {
                                                 $elemMatch: {
-                                                    "assigneddate": req.body.assignedDate, "testName": req.body.testName, "answers": { $elemMatch: { "question": req.body.answers.question,"qstnId":req.body.answers.qstnId } }
+                                                    "assigneddate": req.body.assignedDate, "testName": req.body.testName, "answers": { $elemMatch: { "question": req.body.answers.question, "qstnId": req.body.answers.qstnId } }
                                                 }
                                             }
                                         }, {
@@ -197,7 +166,6 @@ exports.mcqSaveAnswer = function (req, res) {
                                                     ["tests.$.answers." + index + ".answer"]: req.body.answers.answer
                                                 }
                                             }).exec(function (err, doc) {
-                                                console.log(doc);
                                             })
                                     }
                                     index++;
@@ -208,12 +176,6 @@ exports.mcqSaveAnswer = function (req, res) {
                             success: 'Test has been Updated.'
                         });
                     })
-                        .catch(error => {
-                            console.log(error);
-                            res.status(500).json({
-                                error: error
-                            });
-                        });
                 }
                 else {
                     return res.status(200).json({
@@ -227,17 +189,15 @@ exports.mcqSaveAnswer = function (req, res) {
 exports.mcqSaveTest = function (req, res) {
 
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-    console.log(token);
-    
+
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err, decoded) {
 
-        if (err) { console.log(err); return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        if (err) { return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
-            if(testSave(req.body.testName, decoded.email, req.body.assignedDate,res))
-            {
-               
+            if (testSave(req.body.testName, decoded.email, req.body.assignedDate, res)) {
+
                 return res.status(200).json({
                     success: 'Test has been Updated.',
                     marks: marks,
@@ -255,100 +215,92 @@ exports.mcqSaveTest = function (req, res) {
 
 exports.mcqGetRank = function (req, res) {
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-    console.log(token);
     var totalMarks = 0;
     var returnObj = [];
     var counter = 0;
+    var batchName = ""
 
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err, decoded) {
 
-        if (err) { console.log(err); return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        if (err) {  return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
 
             User.find({ "tests.testName": req.body.testName }).exec().then(function (usr) {
-                usr.filter(o => { return o.email == decoded.email }).map(
-                    function (usrBatch) {
-                        // console.log(usrBatch);
-                        usr.forEach(function (p) {
-                            counter++;
-                            // console.log(JSON.stringify(p))
-                            if (p.batchName == usrBatch.batchName) {
-                                var counter1 = 0;
-                                p.tests.forEach(function (ts) {
-
-                                    if (ts.testName == req.body.testName) {
-                                        if (ts.marks != undefined && ts.marks > -1) {
-                                            // console.log("in pop"+returnObj);
-                                            // console.log(ts);
-                                            // console.log(returnObj.filter(o=>o.name==p.firstName+" "+p.lastName));
-                                            if (returnObj.filter(o => o.name == p.firstName + " " + p.lastName).length > 0) {
-                                                console.log("In update test" + ts);
-                                                returnObj.filter(o => o.name == p.firstName + " " + p.lastName).map(p1 => { if (p1.marks < ts.marks) p1.marks = ts.marks });
-                                                counter1++;
-                                                if (counter == usr.length && counter1 == p.tests.length) {
-                                                    
-                                                    return res.status(200).json({
-                                                        userDet: returnObj,
-                                                        // percentile:percentileCalc(usr,req.body.testName,decoded.email)
-                                                    });
-                                                }
-                                            }
-                                            else {
-                                                // console.log("ts" + ts);
-                                                returnObj.push({ "name": p.firstName + " " + p.lastName, "marks": ts.marks });
-                                                console.log(returnObj);
-                                                counter1++;
-                                                console.log(counter);
-                                                console.log(counter1);
-
-                                                if (counter == usr.length && counter1 == p.tests.length) {
-                                                    console.log("returnObj" + returnObj);
-                                                    return res.status(200).json({
-                                                        userDet: returnObj,
-                                                        //  percentile:percentileCalc(usr,req.body.testName,decoded.email)
-                                                    });
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            counter1++;
-                                            if (counter == usr.length && counter1 == p.tests.length) {
-                                                console.log("returnObj" + returnObj);
-                                                return res.status(200).json({
-                                                    userDet: returnObj,
-                                                    //  percentile:percentileCalc(usr,req.body.testName,decoded.email)
-                                                });
-                                            }
-                                        }
-
-                                    }
-                                    else {
+                if (req.body.batchName != undefined) {
+                    batchName = req.body.batchName
+                }
+                else {
+                    usr.filter(o => { return o.email == decoded.email }).map(
+                        function (usrBatch) {
+                            batchName = usrBatch.batchName
+                        });
+                }
+                usr.forEach(function (p) {
+                    counter++;
+                    if (p.batchName != undefined && p.batchName.toLowerCase() == batchName.toLowerCase()) {
+                        var counter1 = 0;
+                        p.tests.forEach(function (ts) {
+                            if (ts.testName == req.body.testName) {
+                                if (ts.marks != undefined && ts.marks > -1) {
+                                    if (returnObj.filter(o => o.name == p.firstName + " " + p.lastName).length > 0) {
+                                        returnObj.filter(o => o.name == p.firstName + " " + p.lastName).map(p1 => { if (p1.marks < ts.marks) p1.marks = ts.marks });
                                         counter1++;
                                         if (counter == usr.length && counter1 == p.tests.length) {
-                                            console.log("returnObj" + returnObj);
+
+                                            return res.status(200).json({
+                                                userDet: returnObj,
+                                                // percentile:percentileCalc(usr,req.body.testName,decoded.email)
+                                            });
+                                        }
+                                    }
+                                    else {
+                                        returnObj.push({ "name": p.firstName + " " + p.lastName, "marks": ts.marks,"totalQuestion":ts.totalQuestion });
+                                        counter1++;
+                                        if (counter == usr.length && counter1 == p.tests.length) {
                                             return res.status(200).json({
                                                 userDet: returnObj,
                                                 //  percentile:percentileCalc(usr,req.body.testName,decoded.email)
                                             });
                                         }
                                     }
-                                })
+                                }
+                                else {
+                                    counter1++;
+                                    if (counter == usr.length && counter1 == p.tests.length) {
+                                        return res.status(200).json({
+                                            userDet: returnObj,
+                                            //  percentile:percentileCalc(usr,req.body.testName,decoded.email)
+                                        });
+                                    }
+                                }
 
                             }
                             else {
-                                if (counter == usr.length) {
+                                counter1++;
+                                if (counter == usr.length && counter1 == p.tests.length) {
                                     return res.status(200).json({
                                         userDet: returnObj,
-                                        // percentile:percentileCalc(usr,req.body.testName,decoded.email)
+                                        //  percentile:percentileCalc(usr,req.body.testName,decoded.email)
                                     });
                                 }
                             }
                         })
 
+                    }
+                    else {
+                        if (counter == usr.length) {
+                            return res.status(200).json({
+                                userDet: returnObj,
+                                // percentile:percentileCalc(usr,req.body.testName,decoded.email)
+                            });
+                        }
+                    }
+                })
 
-                    });
+
+
             });
 
 
@@ -362,9 +314,9 @@ var findTestObj = function (tst, assignedDate, testName) {
 
     return tst[0].tests.filter(function (o) { return o.testName == testName && new Date(o.assigneddate).getTime() == new Date(assignedDate).getTime() });
 }
-var testObjreturnvalue = function (tst, assignedDate, testName, question,qstnId) {
+var testObjreturnvalue = function (tst, assignedDate, testName, question, qstnId) {
     if (findTestObj(tst, assignedDate, testName) != undefined || findTestObj(tst, assignedDate, testName) != null || findTestObj(tst, assignedDate, testName) != {}) {
-        if (findTestObj(tst, assignedDate, testName)[0].answers.filter(function (o) { console.log("question" + o.question + " " + question); return o.qstnId == qstnId  }).length > 0) {
+        if (findTestObj(tst, assignedDate, testName)[0].answers.filter(function (o) { return o.qstnId == qstnId }).length > 0) {
             return 2;
         }
         else
@@ -388,8 +340,6 @@ function getMaxY(usr, testName) {
 }
 
 function getRandom(arr, n) {
-    console.log(arr)
-    console.log(n)
     if (n != undefined) {
         var result = new Array(n),
             len = arr.length,
@@ -408,19 +358,15 @@ function getRandom(arr, n) {
     }
 }
 
-function testSave(testName, email, assignedDate,res) {
+function testSave(testName, email, assignedDate, res) {
     var marks = 0;
     var ansComment = [];
-    var correctQstnId=[];
+    var correctQstnId = [];
     var totalMarks = 0;
     Test.find({ testName: testName.trim() })
         .exec()
         .then(function (tste) {
-            //  var x=tst.toObject();
             var testQuestionCounter = 0;
-
-            console.log(tste);
-            console.log(tste[0].testName);
             if (tste[0].noOfQstn != undefined) {
                 totalMarks = tste[0].noOfQstn
             }
@@ -430,33 +376,28 @@ function testSave(testName, email, assignedDate,res) {
 
             var promise1 = new Promise((resolve, reject) => {
                 tste[0].tests.forEach(function (ts) {
-
-                    console.log(ts);
                     User.find({
                         "email": email, "tests": {
                             $elemMatch: {
                                 "testName": testName, "assigneddate": assignedDate,
-                                "answers": { $elemMatch: { "question": ts.question, "answer": ts.answer,"qstnId":ts._id } }
+                                "answers": { $elemMatch: { "question": ts.question, "answer": ts.answer, "qstnId": ts._id } }
                             }
                         }
                     })
                         .exec().then(function (tsMatch) {
-                            console.log(tsMatch);
                             if (tsMatch != undefined && tsMatch.length > 0) {
                                 marks++;
                                 testQuestionCounter++;
                                 correctQstnId.push(ts._id)
                                 if (testQuestionCounter == tste[0].tests.length) {
-                                    console.log("marks-resolve" + marks);
                                     resolve(marks);
                                 }
                             }
                             else {
                                 testQuestionCounter++;
-                                
+
                                 ansComment.push(ts.comments);
                                 if (testQuestionCounter == tste[0].tests.length) {
-                                    console.log("marks-resolve" + marks);
                                     resolve(marks);
                                 }
                             }
@@ -468,8 +409,7 @@ function testSave(testName, email, assignedDate,res) {
             });
 
             promise1.then(() => {
-                console.log("marks" + marks);
-                User.findOneAndUpdate({ "email": email, "tests": { $elemMatch: { "testName": testName, "assigneddate": assignedDate } } }, { $set: { "tests.$.duration": 0, "tests.$.marks": marks, "tests.$.date": new Date() } }).exec(function (err, doc) {
+                User.findOneAndUpdate({ "email": email, "tests": { $elemMatch: { "testName": testName, "assigneddate": assignedDate } } }, { $set: { "tests.$.duration": 0, "tests.$.marks": marks, "tests.$.date": new Date(),"tests.$.totalQuestion":totalMarks } }).exec(function (err, doc) {
                     return res.status(200).json({
                         success: 'Test has been Updated.',
                         marks: marks,
@@ -477,9 +417,9 @@ function testSave(testName, email, assignedDate,res) {
                         comments: ansComment.filter(function (item, index, inputArray) {
                             return inputArray.indexOf(item) == index;
                         }),
-                        correctQstnId:correctQstnId
+                        correctQstnId: correctQstnId
                     });
-                    
+
                 })
 
             });

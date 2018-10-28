@@ -13,6 +13,7 @@ const testDetails = mongoose.Schema({
    timeStarted:{type:Date,required:false},
     answers:[answer],
    marks: {type: String, required:false},
+   totalQuestion:{type:String,required:false}
 });
 
 const user = mongoose.Schema({
