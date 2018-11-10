@@ -550,7 +550,8 @@ exports.updateBatchName = function (req, res) {
         if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
             var batchName = [];
-            Batch.findOneAndUpdate({'email':decoded.email},{$set:{batchName:req.body.batchName}}, function (err, btch) {
+            console.log(req.body.batchName+" "+req.body.email)
+            User.findOneAndUpdate({'email':req.body.email},{$set:{batchName:req.body.batchName}}, function (err, btch) {
                 if (err) {
                     res.status(500).json({
                         error: "Error happened while updating batch"
@@ -588,7 +589,7 @@ exports.getUserDetails = function (req, res) {
 
 exports.createBatch = function (req, res) {
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-
+console.log(req.body.batchName)
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err) {
