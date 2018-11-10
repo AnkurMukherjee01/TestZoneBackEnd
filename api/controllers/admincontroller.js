@@ -66,6 +66,7 @@ exports.UpdateApproval = function (req, res) {
             });
 
             var counter = 0;
+            
             req.body.approvals.forEach(function (approval) {
                 counter++;
                 var mailOptions = {
@@ -74,7 +75,7 @@ exports.UpdateApproval = function (req, res) {
                     subject: 'New user approval Required',
                     html: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.</p>'
                 };
-                User.findOneAndUpdate({ 'email': approval.email }, { approval: approval.approval, batchName: approval.batchName }, { upsert: false }, function (err, doc) {
+                User.findOneAndUpdate({ 'email': approval.email }, { approval: approval.approval, batchName: approval.batchName==""?"misc batch":approval.batchName }, { upsert: false }, function (err, doc) {
                     if (err) errorMessage.push('Updation failure happened for ' + approval.email)
                     else {
                         transporter.sendMail(mailOptions, function (error, info) {
@@ -123,7 +124,7 @@ exports.mailApproval = function (req, res) {
         subject: 'New user approval Required',
         html: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.</p>'
     };
-    User.findOneAndUpdate({ 'email': req.query.email }, { approval: req.query.approval, batchName: 'MISC BATCH' }, { upsert: false }, function (err, doc) {
+    User.findOneAndUpdate({ 'email': req.query.email }, { approval: req.query.approval, batchName: 'misc batch' }, { upsert: false }, function (err, doc) {
         if (err) errorMessage.push('Updation failure happened for ' + approval.email)
         else {
             transporter.sendMail(mailOptions, function (error, info) {
@@ -522,36 +523,6 @@ exports.getBatchName = function (req, res) {
         if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
             var batchName = [];
-            // User.find({},function(err,usr){
-            //     console.log(usr);
-            //     if (err) return res.send(500,{message:'failed to remove '+ req.body.test});
-            //     else{
-            //         var i=0;
-            //     usr.forEach(function(u){
-            //         i++;
-            //        console.log(u);
-            //        if(u.batchName!=undefined && u.batchName!=""){
-            //            batchName.push(u.batchName);
-            //         if(i==usr.length){
-            //             console.log(batchName);
-            //             res.status(200).json({
-            //                 batch: batchName
-            //              });
-            //         }
-            //         else{
-            //             if(i==usr.length){
-            //                 console.log(batchName);
-            //                 res.status(200).json({
-            //                     batch: batchName
-            //                  });
-            //             }
-            //         }
-            //         }
-            //     })
-
-
-            // }
-            // })
             Batch.find({}, function (err, btch) {
                 if (err) {
                     res.status(500).json({
@@ -565,12 +536,32 @@ exports.getBatchName = function (req, res) {
                     });
                 }
             })
-            // .exec().then(function(user){
-            //     console.log(batchName);
-            //     res.status(200).json({
-            //         batch: batchName
-            //      });
-            // })
+        }
+    })
+}
+
+exports.updateBatchName = function (req, res) {
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, 'secret', function (err,decoded) {
+
+        if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        else {
+            var batchName = [];
+            Batch.findOneAndUpdate({'email':decoded.email},{$set:{batchName:req.body.batchName}}, function (err, btch) {
+                if (err) {
+                    res.status(500).json({
+                        error: "Error happened while updating batch"
+                    });
+                }
+                else {
+                    res.status(200).json({
+                       success:"Batch Name successfully updated"
+                    });
+                }
+            })
         }
     })
 }
@@ -585,7 +576,7 @@ exports.getUserDetails = function (req, res) {
         if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
             var batchName = [];
-            User.find({ batchName: req.body.batchName }
+            User.find({ batchName: req.body.batchName.toLowerCase() }
             ).exec().then(function (user) {
                 res.status(200).json({
                     user: user
@@ -676,6 +667,25 @@ exports.UpdateQuestion = function (req, res) {
                         res.send({ "success": "updated successfully" });
                     }
                 }
+            })
+    });
+}
+
+exports.AssignTestByBatch = function (req, res) {
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, 'secret', function (err) {
+        User.find({ batchName: req.body.batchName }
+        ).exec()
+            .then(function (batch) {
+                var emailList=batch.map(o=> {return o.email});
+                console.log(emailList)
+                User.update({ 'email': {$in:emailList} }, { $push: { tests: { testName: req.body.test, assigneddate: new Date(), answers: [] } } },{ multi: true }).exec(function (err, doc) {
+                    if (err) { console.log(err); return res.send(500, { message: 'Updation failure happened for ' + req.body.email }); }
+                    else return res.send({ "success": "succesfully saved" });
+                })
             })
     });
 }

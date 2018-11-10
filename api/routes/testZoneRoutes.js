@@ -59,6 +59,9 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/updatequestion',approval.UpdateQuestion);
 
+  app.post('/api/updatebatchname',approval.updateBatchName);
+
+  app.post('/api/assigntestbybatch',approval.AssignTestByBatch);
     app.use(function(req, res) {
       res.status(404).send({url: req.originalUrl + ' not found'})
     });
