@@ -27,6 +27,10 @@ const user = mongoose.Schema({
    passChange:{type:Boolean,required:false},
    batchName:{type:String,required:false},
    lastLogin:{type:Date,required:false},
+   phNo:{type:String,required:false},
+   education:{type:String,required:false},
+   exp:{type:String,required:false},
+   qualification:{type:String,required:false},
    tests:[testDetails]
 });
 

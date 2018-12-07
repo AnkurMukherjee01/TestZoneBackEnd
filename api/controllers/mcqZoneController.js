@@ -19,8 +19,13 @@ exports.mcqDet = function (req, res) {
             User.findOne({ email: decoded.email })
                 .exec()
                 .then(function (user) {
+                    console.log(user.phno)
                     return res.status(200).json({
                         testDet: user.tests,
+                        phno:user.phNo,
+                        education:user.education,
+                        exp:user.exp,
+                        qualification:user.qualification,
                     });
                 })
 

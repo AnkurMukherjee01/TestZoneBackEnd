@@ -33,7 +33,8 @@ exports.loginCheck = function (req, res) {
               email: user.email,
               isAdmin: user.isadmin,
               approval: user.approval,
-              passChange: user.passChange
+              passChange: user.passChange,
+              
             });
 
           }
@@ -260,4 +261,20 @@ exports.forgetPassword = function (req, res) {
         });
       }
     });
+}
+
+exports.updateUserDetails = function (req, res) {
+  var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+  if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+  jwt.verify(token, 'secret', function (err,decoded) {
+      User.findOneAndUpdate({ 'email': decoded.email },{$set:{'phNo':req.body.phno,'education':req.body.education,'exp':req.body.exp,'qualification':req.body.qualification}}
+     ,function (err,usr) {
+            console.log(err)
+            if(err) {res.status(500).send({"error":"Error happened please Try again"})}
+            else
+              res.status(200).send({ "success": "updated successfully" });
+          })
+  });
 }
