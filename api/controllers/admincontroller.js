@@ -66,7 +66,7 @@ exports.UpdateApproval = function (req, res) {
             });
 
             var counter = 0;
-            
+
             req.body.approvals.forEach(function (approval) {
                 counter++;
                 var mailOptions = {
@@ -75,7 +75,7 @@ exports.UpdateApproval = function (req, res) {
                     subject: 'New user approval Required',
                     html: '<h3>Hi candidate<h3><br/><p>Complete analytics has approved your login.</p>'
                 };
-                User.findOneAndUpdate({ 'email': approval.email }, { approval: approval.approval, batchName: approval.batchName==""?"misc batch":approval.batchName }, { upsert: false }, function (err, doc) {
+                User.findOneAndUpdate({ 'email': approval.email }, { approval: approval.approval, batchName: approval.batchName == "" ? "misc batch" : approval.batchName }, { upsert: false }, function (err, doc) {
                     if (err) errorMessage.push('Updation failure happened for ' + approval.email)
                     else {
                         transporter.sendMail(mailOptions, function (error, info) {
@@ -286,9 +286,9 @@ exports.CreateTest = function (req, res) {
 
                         Test.findOneAndUpdate({ testName: req.body.testName.toUpperCase() }, { testDuration: req.body.testDuration, noOfQstn: req.body.noOfQstn }, { upsert: false }, function (err, doc) {
                             if (err) errorMessage.push('Updation failure happened for ' + req.body.testName);
-                           
-                            if(req.body.testFile!=undefined && req.body.testFile.length>0){
-                                console.log("testfile"+req.body.testFile)
+
+                            if (req.body.testFile != undefined && req.body.testFile.length > 0) {
+                                console.log("testfile" + req.body.testFile)
                                 var workbook = XLSX.read(req.body.testFile, { type: 'base64' });
                                 var first_sheet_name = workbook.SheetNames[0];
                                 /* Get worksheet */
@@ -320,7 +320,7 @@ exports.CreateTest = function (req, res) {
                                                         success: 'Test has been Updated.'
                                                     });
                                                 });
-    
+
                                             }
                                         }
                                         else {
@@ -332,75 +332,75 @@ exports.CreateTest = function (req, res) {
                                                         success: 'Test has been Updated.'
                                                     });
                                                 });
-    
+
                                             }
                                         }
-    
+
                                     }
                                     i++;
                                 }
                             }
-                            else{
+                            else {
                                 res.status(200).json({
                                     success: 'Test has been Updated.'
                                 });
                             }
-                            
+
                         });
                     }
                     else {
-                        if(req.body.testFile!=undefined && req.body.testFile.length>0){
-                        const test = new Test({
-                            _id: new mongoose.Types.ObjectId(),
-                            testName: req.body.testName.toUpperCase(),
-                            testDuration: req.body.testDuration,
-                            testType: req.body.testType,
-                            noOfQstn: req.body.noOfQstn,
-                            tests: []
-                        });
-
-                        var workbook = XLSX.read(req.body.testFile, { type: 'base64' });
-                        var first_sheet_name = workbook.SheetNames[0];
-                        /* Get worksheet */
-                        var worksheet = workbook.Sheets[first_sheet_name];
-                        var excel_as_json = XLSX.utils.sheet_to_json(worksheet);
-                        console.log(worksheet['B2'])
-                        var testArray = []
-                        var i = 0;
-                        console.log(excel_as_json);
-                        for (var R = 0; R < excel_as_json.length; R++) {
-                            test.tests.push({
-                                question: excel_as_json[R]["Question"],
-                                image: excel_as_json[R]["Image"],
-                                answer: excel_as_json[R]["answer"],
-                                comments: excel_as_json[R]["comments"],
-                                options: [],
+                        if (req.body.testFile != undefined && req.body.testFile.length > 0) {
+                            const test = new Test({
+                                _id: new mongoose.Types.ObjectId(),
+                                testName: req.body.testName.toUpperCase(),
+                                testDuration: req.body.testDuration,
+                                testType: req.body.testType,
+                                noOfQstn: req.body.noOfQstn,
+                                tests: []
                             });
-                            for (var key in excel_as_json[i]) {
 
-                                if (key.startsWith('option')) {
-                                    test.tests[i].options.push(excel_as_json[i][key]);
-                                    var index = Object.keys(excel_as_json[i]).indexOf(key);
-                                    if (R == excel_as_json.length - 1 && excel_as_json[i][index + 1] == undefined) {
-                                        test.save().then(function (result) {
-                                            res.status(200).json({
-                                                success: 'New test has been created.'
-                                            });
-                                        })
+                            var workbook = XLSX.read(req.body.testFile, { type: 'base64' });
+                            var first_sheet_name = workbook.SheetNames[0];
+                            /* Get worksheet */
+                            var worksheet = workbook.Sheets[first_sheet_name];
+                            var excel_as_json = XLSX.utils.sheet_to_json(worksheet);
+                            console.log(worksheet['B2'])
+                            var testArray = []
+                            var i = 0;
+                            console.log(excel_as_json);
+                            for (var R = 0; R < excel_as_json.length; R++) {
+                                test.tests.push({
+                                    question: excel_as_json[R]["Question"],
+                                    image: excel_as_json[R]["Image"],
+                                    answer: excel_as_json[R]["answer"],
+                                    comments: excel_as_json[R]["comments"],
+                                    options: [],
+                                });
+                                for (var key in excel_as_json[i]) {
+
+                                    if (key.startsWith('option')) {
+                                        test.tests[i].options.push(excel_as_json[i][key]);
+                                        var index = Object.keys(excel_as_json[i]).indexOf(key);
+                                        if (R == excel_as_json.length - 1 && excel_as_json[i][index + 1] == undefined) {
+                                            test.save().then(function (result) {
+                                                res.status(200).json({
+                                                    success: 'New test has been created.'
+                                                });
+                                            })
+                                        }
                                     }
-                                }
 
+                                }
+                                i++;
                             }
-                            i++;
+                        }
+                        else {
+                            res.status(200).json({
+                                success: 'Test File not uploaded.'
+                            });
                         }
                     }
-                    else{
-                        res.status(200).json({
-                            success: 'Test File not uploaded.'
-                        });
-                    }
-                }
-               
+
                 })
         }
     })
@@ -545,13 +545,13 @@ exports.updateBatchName = function (req, res) {
 
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
-    jwt.verify(token, 'secret', function (err,decoded) {
+    jwt.verify(token, 'secret', function (err, decoded) {
 
         if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
         else {
             var batchName = [];
-            console.log(req.body.batchName+" "+req.body.email)
-            User.findOneAndUpdate({'email':req.body.email},{$set:{batchName:req.body.batchName}}, function (err, btch) {
+            console.log(req.body.batchName + " " + req.body.email)
+            User.findOneAndUpdate({ 'email': req.body.email }, { $set: { batchName: req.body.batchName } }, function (err, btch) {
                 if (err) {
                     res.status(500).json({
                         error: "Error happened while updating batch"
@@ -559,7 +559,7 @@ exports.updateBatchName = function (req, res) {
                 }
                 else {
                     res.status(200).json({
-                       success:"Batch Name successfully updated"
+                        success: "Batch Name successfully updated"
                     });
                 }
             })
@@ -589,7 +589,7 @@ exports.getUserDetails = function (req, res) {
 
 exports.createBatch = function (req, res) {
     var token = req.get('Authorization').replace(/^Bearer\s/, '');
-console.log(req.body.batchName)
+    console.log(req.body.batchName)
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err) {
@@ -658,13 +658,15 @@ exports.UpdateQuestion = function (req, res) {
         Test.find({ testName: req.body.testName }
         ).exec()
             .then(function (tst) {
-                for(var i=0;i<req.body.questions.length;i++){
+                for (var i = 0; i < req.body.questions.length; i++) {
                     console.log(req.body.questions[i].question)
-                    Test.findOneAndUpdate({ "testName": req.body.testName, "tests": { $elemMatch: { "question":req.body.questions[i].question}}}, {$set: {
-                        "tests.$.image":
-                            req.body.questions[i].image
-                    }}).exec()
-                    if(i==req.body.questions.length-1){
+                    Test.findOneAndUpdate({ "testName": req.body.testName, "tests": { $elemMatch: { "question": req.body.questions[i].question } } }, {
+                        $set: {
+                            "tests.$.image":
+                                req.body.questions[i].image
+                        }
+                    }).exec()
+                    if (i == req.body.questions.length - 1) {
                         res.send({ "success": "updated successfully" });
                     }
                 }
@@ -678,15 +680,95 @@ exports.AssignTestByBatch = function (req, res) {
     if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
     jwt.verify(token, 'secret', function (err) {
-        User.find({ batchName: req.body.batchName }
+        User.find({ batchName: req.body.batchName, approval:{$in:['M','MA','A']} }
         ).exec()
             .then(function (batch) {
-                var emailList=batch.map(o=> {return o.email});
+                var emailList = batch.map(o => { return o.email });
                 console.log(emailList)
-                User.update({ 'email': {$in:emailList} }, { $push: { tests: { testName: req.body.test, assigneddate: new Date(), answers: [] } } },{ multi: true }).exec(function (err, doc) {
+                User.update({ 'email': { $in: emailList } }, { $push: { tests: { testName: req.body.test, assigneddate: new Date(), answers: [] } } }, { multi: true }).exec(function (err, doc) {
                     if (err) { console.log(err); return res.send(500, { message: 'Updation failure happened for ' + req.body.email }); }
                     else return res.send({ "success": "succesfully saved" });
                 })
             })
+    });
+}
+
+exports.UserReport = function (req, res) {
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+    jwt.verify(token, 'secret', function (err) {
+        User.find({
+            lastLogin: { $gt: req.body.date }, exp: { $gte: req.body.minexp }, exp: { $lte: req.body.maxexp },isadmin:{$ne:true}, "tests": {
+                $elemMatch: {
+                    "testName": req.body.testName
+                }
+            }
+        }
+        ).exec()
+            .then(function (usrs) {
+                var j=0;
+                var us = []
+                let promise1 = new Promise(function (resolve, reject) {
+                    usrs.map(o => {
+                        
+                        j++;
+                        o.tests.map(p => {
+                            if (p.testName == req.body.testName && (p.marks / p.totalQuestion) >= req.body.marks/100) {
+                                if (us.filter(a => { return a.email == o.email && a.marks  < p.marks / p.totalQuestion }).length > 0) {
+                                    us.filter(b => { return b.email == o.email }).map(c => { c.marks = p.marks })
+                                }
+                                else if (us.filter(a => { return a.email == o.email && a.marks > p.marks / p.totalQuestion }).length > 0) {
+                                }
+                                else {
+                                    
+                                    us.push(
+                                        {
+                                            email: o.email,
+                                            name: o.firstName + " " + o.lastName,
+                                            lastLogin: o.lastLogin,
+                                            marks:100 * p.marks / p.totalQuestion,
+                                            phNo: o.phNo,
+                                            exp:o.exp
+                                        }
+                                    )
+                                    console.log(us)
+                                }
+                            }
+                            if (j == usrs.length) {
+                                resolve("done")
+                            }
+                        })
+                    })
+                })
+
+                promise1.then(u => {
+                    console.log(us)
+                    res.send(
+                       { "user":us}
+                    );
+                })
+
+            })
+    });
+}
+
+//Update approval api
+exports.ChangeApproval = function (req, res) {
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, 'secret', function (err) {
+
+        if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        else {
+                User.findOneAndUpdate({ 'email': req.body.email }, { approval: req.body.approval }, { upsert: false }, function (err, doc) {
+                    if (err)  return res.send(500, "Updation failed. Contact Ankur");
+                    else {      
+                            return res.send({ success: "succesfully updated" });                            
+                        }
+                    })
+        }
     });
 }

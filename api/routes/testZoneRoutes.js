@@ -63,7 +63,11 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/assigntestbybatch',approval.AssignTestByBatch);
 
-  app.post('/api/updateUserDet',testZone.updateUserDetails);
+  app.post('/api/assigntestbybatch',approval.AssignTestByBatch);
+  
+  app.post('/api/getuserreport',approval.UserReport);
+
+  app.post('/api/changeapproval',approval.ChangeApproval);
     app.use(function(req, res) {
       res.status(404).send({url: req.originalUrl + ' not found'})
     });

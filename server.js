@@ -14,10 +14,10 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 const cors = require('cors')
-global.senderEmail='completeanalytics@gmail.com'
+global.senderEmail='mukherjeenkur@gmail.com'
 global.auth={
   user: senderEmail,
-  pass: 'CARS@201106'
+  pass: '*****'
 }
 
 

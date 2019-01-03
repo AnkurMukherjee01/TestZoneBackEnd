@@ -59,11 +59,11 @@ exports.loginCheck = function (req, res) {
 
 exports.signUp = function (req, res) {
   console.log(req.body);
-  User.findOne({ email: req.body.email.toLowerCase() })
+  User.findOne({ email: req.body.email.trim().toLowerCase() })
     .exec()
     .then(function (user) {
       console.log(user);
-      if (user != "" && user != null) {
+      if (user != "" && user != null ) {
         return res.status(409).json({
           error: 'User already exist'
         });
@@ -71,20 +71,12 @@ exports.signUp = function (req, res) {
       else {
         var transporter = nodemailer.createTransport({
           service: 'gmail',
-          // auth: {
-          //   user: 'completeanalytics@gmail.com',
-          //   pass: 'CARS@201106'
-          //   //  user: 'mukherjeenkur@gmail.com',
-          //   // pass: 'jibontori'
-          // }
           auth: auth
         });
 
         var mailOptions = {
           from: senderEmail,
-          to: '' + senderEmail + ',' + req.body.email.toLowerCase() + '',
-          // from: 'mukherjeenkur@gmail.com',
-          // to: 'mukherjeenkur@gmail.com,'+req.body.email+'',
+          to: '' + senderEmail + ',' + req.body.email.trim().toLowerCase() + '',
           subject: 'New user approval Required',
           html: '<h3>Dear Candidate</h3><br/><div>Thanks for joining. We will approve soon.</div>'
         };
@@ -112,7 +104,7 @@ exports.signUp = function (req, res) {
 
             const user = new User({
               _id: new mongoose.Types.ObjectId(),
-              email: req.body.email.toLowerCase(),
+              email: req.body.email.trim().toLowerCase(),
               password: hash,
               firstName: req.body.firstName,
               lastName: req.body.lastName,
@@ -151,7 +143,7 @@ exports.signUp = function (req, res) {
 
 exports.changePassword = function (req, res) {
   console.log(req.body);
-  User.findOne({ email: req.body.email.toLowerCase(), approval: { $nin: ['N', 'D'] } })
+  User.findOne({ email: req.body.email.trim().toLowerCase(), approval: { $nin: ['N', 'D'] } })
     .exec()
     .then(function (user) {
       if (user != null) {
