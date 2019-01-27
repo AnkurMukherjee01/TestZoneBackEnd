@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const User = require('../models/user.model');
 const Test = require('../models/test.model');
 const Batch = require('../models/batch.model');
+const Student = require('../models/student.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const querystring = require('querystring');
@@ -769,6 +770,26 @@ exports.ChangeApproval = function (req, res) {
                             return res.send({ success: "succesfully updated" });                            
                         }
                     })
+        }
+    });
+}
+
+exports.GetEnquiry = function(req,res){
+    var token = req.get('Authorization').replace(/^Bearer\s/, '');
+
+    if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+    jwt.verify(token, 'secret', function (err) {
+        if (err) { console.log(err); return res.status(400).send({ auth: false, message: 'Failed to authenticate token.' }) }
+        else {
+                Student.find({"createdtime":{$gt:new Date(req.body.time)}}
+                , function (err,docs) {
+                    if (err) {  console.log(err); return res.status(500).send( {"err":"Failed to get details"}); }
+                   else {    
+                            return res.send({"student":docs});                            
+                       }
+                    }
+                )
         }
     });
 }
