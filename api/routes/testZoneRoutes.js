@@ -69,6 +69,8 @@ app.route('/api/cats').post((req, res) => {
 
   app.post('/api/changeapproval',approval.ChangeApproval);
 
+  app.post('/api/updateUserDet',testZone.updateUserDetails);
+
   app.post('/api/getenquiry',approval.GetEnquiry);
     app.use(function(req, res) {
       res.status(404).send({url: req.originalUrl + ' not found'})
